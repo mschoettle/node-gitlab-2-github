@@ -560,6 +560,9 @@ export class GithubHelper {
     issue: IssueImport,
     comments: CommentImport[]
   ): Promise<number | null> {
+    if (issue.body.length > 65000) {
+      throw `${issue.title} has a body longer than 65000 characters.}`
+    }
     // create the GitHub issue from the GitLab issue
     let pending = await this.githubApi.request(
       `POST /repos/${settings.github.owner}/${settings.github.repo}/import/issues`,
