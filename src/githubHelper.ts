@@ -886,6 +886,8 @@ export class GithubHelper {
         mergeRequest
       );
 
+      bodyConverted += '\n\n*Migrated from GitLab merge request: ' + mergeRequest.web_url + '*';
+
       // GitHub API Documentation to create a pull request: https://developer.github.com/v3/pulls/#create-a-pull-request
       let props = {
         owner: this.githubOwner,
