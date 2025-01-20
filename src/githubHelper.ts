@@ -1280,6 +1280,14 @@ export class GithubHelper {
       milestoneReplacer(p1, '')
     );
 
+    // Replace github.com URLs to other organizations with redirect.github.com to avoid backlink spam
+    let urlMassager = (str: string) => {
+      return str.replace('github.com', 'redirect.github.com');
+    }
+
+    reString = `https:\\/\\/github\\.com\\/(?!${settings.github.owner}).+\\/.+\\/\\d+`;
+    str = str.replace(new RegExp(reString, 'g'), (match) => urlMassager(match));
+
     //
     // Label reference conversion
     //
