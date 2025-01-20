@@ -589,6 +589,7 @@ async function transferMergeRequests() {
           'Could not create pull request: !' + mr.iid + ' - ' + mr.title
         );
         console.error(err);
+        break;
       }
     } else {
       if (githubRequest) {
