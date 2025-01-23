@@ -15,6 +15,13 @@ ARG USER_GID=$USER_UID
 LABEL version="0.1.5"
 LABEL description="Migrate Issues, Wiki from gitlab to github."
 
+# https://github.com/j178/github-s3
+# TODO: download Linux_$(uname -m) release from here: https://github.com/j178/github-s3/releases
+COPY github-s3 /usr/bin/
+
+# for github-s3
+RUN apt update && apt install -y ca-certificates
+
 WORKDIR /app
 
 # Add a non-root user, so later we can explore methods to scale

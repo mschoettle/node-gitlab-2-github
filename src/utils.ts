@@ -5,6 +5,9 @@ import * as crypto from 'crypto';
 import S3 from 'aws-sdk/clients/s3';
 import { GitlabHelper } from './gitlabHelper';
 
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+
 export const sleep = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 };
@@ -82,13 +85,29 @@ export const migrateAttachments = async (
       ] = `${prefix}[${name}](${s3url})`;
     } else {
       // Not using S3: default to old URL, adding absolute path
-      const host = gitlabHelper.host.endsWith('/')
-        ? gitlabHelper.host
-        : gitlabHelper.host + '/';
-      const attachmentUrl = host + gitlabHelper.projectPath + url;
+      const attachmentBuffer = await gitlabHelper.getAttachment(url);
+      if (!attachmentBuffer) {
+        throw new Error(`Attachment ${url} not downloaded`);
+      }
+      const basename = path.basename(url);
+      const mimeType = mime.lookup(basename);
+      // save attachmentBuffer to file
+      const fs = require('fs');
+      const tempFilePath = `/tmp/${path.basename(url)}`;
+      fs.writeFileSync(tempFilePath, attachmentBuffer);
+      console.log(`Saved attachment to ${tempFilePath}`);
+
+      console.log('Uploading attachment to GitHub via github-s3...');
+      const { stdout, stderr } = await exec(`github-s3 ${tempFilePath}`);
+      console.log(`Uploaded attachment URL: ${stdout.trim()}`);
+
+      if (stderr) {
+        throw new Error(stderr);
+      }
+      
       offsetToAttachment[
         match.index as number
-      ] = `${prefix}[${name}](${attachmentUrl})`;
+      ] = `${prefix}[${name}](${stdout.trim()})`;
     }
   }
 
