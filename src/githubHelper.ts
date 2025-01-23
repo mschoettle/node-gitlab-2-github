@@ -1528,6 +1528,12 @@ export class GithubHelper {
       const hash = crypto.createHash('sha256').update(path).digest('hex');
       slug = `#diff-${hash}${side}${line}`;
     }
+
+    const cherry_picked_commit = settings.commitMap[head_sha];
+    if (cherry_picked_commit) {
+      head_sha = cherry_picked_commit;
+    }
+
     // Mention the file and line number. If we can't get this for some reason then use the commit id instead.
     const ref = path && line ? `${path} line ${line}` : `${head_sha}`;
     let lineRef = `Commented on [${ref}](${repoLink}/compare/${base_sha}..${head_sha}${slug})\n\n`;
