@@ -15,6 +15,7 @@ import { default as readlineSync } from 'readline-sync';
 import * as fs from 'fs';
 
 import AWS from 'aws-sdk';
+import { sleep } from './utils';
 
 const CCERROR = '\x1b[31m%s\x1b[0m'; // red
 const CCWARN = '\x1b[33m%s\x1b[0m'; // yellow
@@ -591,6 +592,10 @@ async function transferMergeRequests() {
         console.error(err);
         break;
       }
+
+      let waitTime = 5;
+      console.log(`Waiting ${waitTime} seconds to avoid abuse detection...`);
+      await sleep(waitTime * 1000);
     } else {
       if (githubRequest) {
         console.log(
