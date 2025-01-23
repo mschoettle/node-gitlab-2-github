@@ -1412,6 +1412,14 @@ export class GithubHelper {
     reString = `https:\\/\\/github\\.com\\/(?!${settings.github.owner}).+\\/.+\\/\\d+`;
     str = str.replace(new RegExp(reString, 'g'), (match) => urlMassager(match));
 
+    // MR reference replacer: replace ! with # (assumes the MR and PR number are the same)
+    let mrReplacer = (number: string) => {
+      return `#${number}`;
+    }
+
+    reString = `(?:!(\\d+))\\+?`;
+    str = str.replace(new RegExp(reString, 'g'), (_, p1) => mrReplacer(p1));
+
     //
     // Label reference conversion
     //
