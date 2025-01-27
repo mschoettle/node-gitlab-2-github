@@ -647,8 +647,9 @@ export class GithubHelper {
     issue: IssueImport,
     comments: CommentImport[]
   ): Promise<number | null> {
-    if (issue.body.length > 65000) {
-      throw `${issue.title} has a body longer than 65000 characters.}`
+    // see: https://github.com/orgs/community/discussions/27190
+    if (issue.body.length > 65536) {
+      throw `${issue.title} has a body longer than 65536 characters. Please shorten it first.`
     }
     // create the GitHub issue from the GitLab issue
     let pending = await this.githubApi.request(
