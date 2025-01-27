@@ -1482,6 +1482,7 @@ export class GithubHelper {
       hour: 'numeric',
       minute: 'numeric',
       hour12: false,
+      timeZoneName: 'short',
     };
 
     const formattedDate = new Date(item.created_at).toLocaleString(
