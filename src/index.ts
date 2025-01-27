@@ -593,7 +593,7 @@ async function transferMergeRequests() {
         break;
       }
 
-      let waitTime = 5;
+      let waitTime = 20;
       console.log(`Waiting ${waitTime} seconds to avoid abuse detection...`);
       await sleep(waitTime * 1000);
     } else {
