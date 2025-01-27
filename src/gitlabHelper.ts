@@ -120,7 +120,7 @@ export class GitlabHelper {
    */
   async getAttachment(relurl: string) {
     try {
-      const attachmentUrl = this.host + '/' + this.projectPath + relurl;
+      const attachmentUrl = this.host + '/-/project/' + this.gitlabProjectId + relurl;
       const data = (
         await axios.get(attachmentUrl, {
           responseType: 'arraybuffer',
@@ -133,7 +133,7 @@ export class GitlabHelper {
       ).data;
       return Buffer.from(data, 'binary');
     } catch (err) {
-      console.error(`Could not download attachment #${relurl}.`);
+      console.error(`Could not download attachment #${relurl}: ${err.response.statusText}`);
       return null;
     }
   }
