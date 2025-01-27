@@ -1593,10 +1593,13 @@ export class GithubHelper {
       const startLine = position.line_range.start.new_line;
       const endLine = position.line_range.end.new_line;
       const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
-      lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;  
+      lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
     }
     else {
-      console.log(position.line_range);
+      const startLine = position.line_range.start.old_line;
+      const endLine = position.line_range.end.old_line;
+      const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
+      lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
     }
 
     return lineRef;
