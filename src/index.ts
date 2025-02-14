@@ -565,14 +565,14 @@ async function transferMergeRequests() {
     // Try to find a GitHub pull request that already exists for this GitLab
     // merge request
     let githubRequest = githubPullRequests.find(
-      i => i.title.trim() === mr.title.trim()
+      i => i.title.trim() === mr.title.trim() && i.body.includes(mr.web_url)
     );
     let githubIssue = githubIssues.find(
       // allow for issues titled "Original Issue Name - [merged|closed]"
       i => {
         // regex needs escaping in case merge request title contains special characters
         const regex = new RegExp(escapeRegExp(mr.title.trim()) + ' - \\[(merged|closed)\\]');
-        return regex.test(i.title.trim());
+        return regex.test(i.title.trim()) && i.body.includes(mr.web_url);
       }
     );
     if (!githubRequest && !githubIssue) {
