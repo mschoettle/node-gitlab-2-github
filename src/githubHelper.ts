@@ -1125,8 +1125,7 @@ export class GithubHelper {
       !repoLink ||
       !repoLink.startsWith(gitHubLocation) ||
       !position ||
-      !position.head_sha ||
-      !position.line_range
+      !position.head_sha
     ) {
       throw new Error(`Position is invalid: ${JSON.stringify(position)}`);
     }
@@ -1135,19 +1134,19 @@ export class GithubHelper {
     let side = '';
     let path = '';
 
-    if (
-      (position.new_line && position.new_path) ||
-      (position.old_line && position.old_path)
-    ) {
-      if (!position.old_line || !position.old_path) {
-        side = 'RIGHT';
-        path = position.new_path;
-      } else {
-        side = 'LEFT';
-        path = position.old_path;
-        // use the start_sha since the head_sha does not contain the line anymore
-        // head_sha = position.start_sha;
-      }
+    // the comment was made on the file
+    if (!position.line_range) {
+      side = position.new_path ? 'RIGHT' : 'LEFT';
+      path = position.new_path ? position.new_path : position.old_path;
+    }
+    else if (position.line_range.start.type === 'old') {
+      side = 'LEFT';
+      path = position.old_path;
+    }
+    // can be 'new' or 'expanded'
+    else {
+      side = 'RIGHT';
+      path = position.new_path;
     }
 
     // figure out new commit
@@ -1156,22 +1155,28 @@ export class GithubHelper {
       head_sha = cherry_picked_commit;
     }
 
-    const start = position.line_range.start;
-    const end = position.line_range.end;
-    const start_line = start.type === 'new' ? start.new_line : start.old_line;
-    const end_line = end.type === 'new' ? end.new_line : end.old_line;
-
     let data = {
       commit_id: head_sha,
       path: path,
       side: side,
-      line: end_line,
     };
 
-    // deal with multi-line comments
-    if (start_line != end_line) {
-      data['start_line'] = start_line;
-      data['start_side'] = side;
+    if (position.line_range) {
+      const start = position.line_range.start;
+      const end = position.line_range.end;
+      const start_line = start.type === 'old' ? start.old_line : start.new_line;
+      const end_line = end.type === 'old' ? end.old_line : end.new_line;
+
+      data['line'] = end_line;
+
+      // deal with multi-line comments
+      if (start_line != end_line) {
+        data['start_line'] = start_line;
+        data['start_side'] = side;
+      }
+    }
+    else {
+      data['subject_type'] = 'file';
     }
 
     return data;
@@ -1265,13 +1270,10 @@ export class GithubHelper {
               let use_fallback = false;
               if (x.status === 422) {
                 if (x.response.data.message === 'Validation Failed') {
-                  let validation_error = x.response.data.errors[0];
-                  if (validation_error.message.endsWith(' is not part of the pull request')) {
                     // fall back to creating a regular comment for the discussion
                     create_regular_comment = true;
                     use_fallback = true;
-                    console.log('fallback to regular comment');
-                  }
+                    console.log('fallback to regular comment due to error');
                 }
               }
 
@@ -1284,8 +1286,7 @@ export class GithubHelper {
 
             if (!create_regular_comment) {
               for (let reviewComment of reviewComments.slice(1)) {
-                // await utils.sleep(this.delayInMs);
-                this.githubApi.pulls.createReplyForReviewComment({
+                await this.githubApi.pulls.createReplyForReviewComment({
                   owner: this.githubOwner,
                   repo: this.githubRepo,
                   pull_number: pullRequest.number,
@@ -1724,17 +1725,19 @@ export class GithubHelper {
     const ref = path && line ? `${path} line ${line}` : `${head_sha}`;
     let lineRef = `Commented on [${ref}](${repoLink}/compare/${base_sha}..${head_sha}${slug})\n\n`;
 
-    if (position.line_range.start.type === 'new') {
-      const startLine = position.line_range.start.new_line;
-      const endLine = position.line_range.end.new_line;
-      const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
-      lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
-    }
-    else {
-      const startLine = position.line_range.start.old_line;
-      const endLine = position.line_range.end.old_line;
-      const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
-      lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
+    if (position.line_range) {
+      if (position.line_range.start.type === 'new') {
+        const startLine = position.line_range.start.new_line;
+        const endLine = position.line_range.end.new_line;
+        const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
+        lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
+      }
+      else {
+        const startLine = position.line_range.start.old_line;
+        const endLine = position.line_range.end.old_line;
+        const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
+        lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
+      }
     }
 
     return lineRef;
