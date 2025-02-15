@@ -528,7 +528,7 @@ export class GithubHelper {
       this.githubApi.issues.addAssignees({
         owner: this.githubOwner,
         repo: this.githubRepo,
-        issue_number: issue_number,
+        issue_number: Number(issue_number),
         assignees: assignees,
       });
     }
@@ -671,7 +671,7 @@ export class GithubHelper {
   async requestImportIssue(
     issue: IssueImport,
     comments: CommentImport[]
-  ): Promise<number | null> {
+  ): Promise<string | null> {
     // see: https://github.com/orgs/community/discussions/27190
     if (issue.body.length > 65536) {
       throw `${issue.title} has a body longer than 65536 characters. Please shorten it first.`
@@ -915,7 +915,26 @@ export class GithubHelper {
     // createPullRequest() returns an issue number if a PR could not be created and
     // an issue was created instead, and settings.useIssueImportAPI is true. In that
     // case comments were already added and the state is already properly set
-    if (typeof pullRequestData === 'number' || !pullRequestData) return;
+    if (typeof pullRequestData === 'string' || !pullRequestData) {
+      // if the merge request was closed, update the issue close reason to "not planned"
+      if (mergeRequest.state === 'closed') {
+        console.log('updating issue close reason')
+        let props: RestEndpointMethodTypes['issues']['update']['parameters'] = {
+          owner: this.githubOwner,
+          repo: this.githubRepo,
+          issue_number: Number(pullRequestData),
+          state: 'closed',
+          state_reason: 'not_planned',
+        };
+
+        await utils.sleep(this.delayInMs);
+
+        if (!settings.dryRun) {
+          let response = await this.githubApi.issues.update(props);
+        }
+      }
+      return;
+    }
 
     let pullRequest = pullRequestData.data;
 
