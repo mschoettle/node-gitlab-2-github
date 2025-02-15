@@ -1579,11 +1579,12 @@ export class GithubHelper {
 
     // Replace github.com URLs to other organizations with redirect.github.com to avoid backlink spam
     let urlMassager = (str: string) => {
-      return str.replace('github.com', 'redirect.github.com');
+      return 'redirect.github.com';
     }
 
-    reString = `https:\\/\\/github\\.com\\/(?!${settings.github.owner}).+\\/.+\\/\\d+`;
-    str = str.replace(new RegExp(reString, 'g'), (match) => urlMassager(match));
+    // Keep owner internal links/back links intact
+    reString = `((?:to|redirect\\.|www\\.)?github\\.com)(?!\\/${settings.github.owner}\\/)`;
+    str = str.replace(new RegExp(reString, 'g'), (_, p1) => urlMassager(p1));
 
     // MR reference replacer: replace ! with # (assumes the MR and PR number are the same)
     let mrReplacer = (number: string) => {
