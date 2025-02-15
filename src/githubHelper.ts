@@ -1638,6 +1638,10 @@ export class GithubHelper {
       let issue = item as GitLabIssue;
       str = await this.addIssueInformation(issue, str)
     }
+    
+    if ('web_url' in item) {
+      str += '\n\n*Migrated from GitLab: ' + item.web_url + '*';
+    }
 
     return str;
   }
