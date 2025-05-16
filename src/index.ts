@@ -466,7 +466,7 @@ async function transferIssues() {
   for (let issue of issues) {
     // try to find a GitHub issue that already exists for this GitLab issue
     let githubIssue = githubIssues.find(
-      i => i.title.trim() === issue.title.trim()
+      i => i.title.trim() === issue.title.trim() && i.body.includes(issue.web_url)
     );
     if (!githubIssue) {
       console.log(`\nMigrating issue #${issue.iid} ('${issue.title}')...`);
