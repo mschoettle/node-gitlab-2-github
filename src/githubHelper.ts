@@ -1291,10 +1291,15 @@ export class GithubHelper {
               let use_fallback = false;
               if (x.status === 422) {
                 if (x.response.data.message === 'Validation Failed') {
-                    // fall back to creating a regular comment for the discussion
-                    create_regular_comment = true;
-                    use_fallback = true;
-                    console.log('fallback to regular comment due to error');
+                  // fall back to creating a regular comment for the discussion
+                  create_regular_comment = true;
+                  use_fallback = true;
+                  console.log('fallback to regular comment due to error');
+                } else {
+                  console.log(x.response.data);
+                  create_regular_comment = true;
+                  use_fallback = true;
+                  console.log('fallback to regular comment due to error');
                 }
               }
 
@@ -1304,6 +1309,8 @@ export class GithubHelper {
                 process.exit(1);
               }
             });
+
+            await utils.sleep(this.delayInMs);
 
             if (!create_regular_comment) {
               for (let reviewComment of reviewComments.slice(1)) {
@@ -1318,6 +1325,8 @@ export class GithubHelper {
                   console.error(x);
                   process.exit(1);
                 });
+
+                await utils.sleep(this.delayInMs);
               }
             }
           }
