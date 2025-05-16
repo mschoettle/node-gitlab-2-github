@@ -84,7 +84,7 @@ const githubApi = new MyOctokit({
       console.log(`Retrying after ${retryAfter} seconds!`);
       return true;
     },
-    fallbackSecondaryRateRetryAfter: 120,
+    fallbackSecondaryRateRetryAfter: 1200,
   },
 });
 
