@@ -493,6 +493,8 @@ async function transferIssues() {
         console.log(`\t...DONE migrating issue #${issue.iid}.`);
       } catch (err) {
         console.log(`\t...ERROR while migrating issue #${issue.iid}.`);
+        console.error(err);
+        process.exit(1);
 
         console.error('DEBUG:\n', err); // TODO delete this after issue-migration-fails have been fixed
 
