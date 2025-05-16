@@ -1410,7 +1410,22 @@ export class GithubHelper {
     }
     // Mention the file and line number. If we can't get this for some reason then use the commit id instead.
     const ref = path && line ? `${path} line ${line}` : `${head_sha}`;
-    return `Commented on [${ref}](${repoLink}/compare/${base_sha}..${head_sha}${slug})\n\n`;
+    let lineRef = `Commented on [${ref}](${repoLink}/compare/${base_sha}..${head_sha}${slug})\n\n`;
+
+    if (position.line_range.start.type === 'new') {
+      const startLine = position.line_range.start.new_line;
+      const endLine = position.line_range.end.new_line;
+      const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
+      lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
+    }
+    else {
+      const startLine = position.line_range.start.old_line;
+      const endLine = position.line_range.end.old_line;
+      const lineRange = (startLine !== endLine) ? `L${startLine}-L${endLine}` : `L${startLine}`;
+      lineRef += `${repoLink}/blob/${head_sha}/${path}#${lineRange}\n\n`;
+    }
+
+    return lineRef;
   }
 
   /**
