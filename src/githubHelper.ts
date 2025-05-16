@@ -515,6 +515,12 @@ export class GithubHelper {
 
     const issue_number = await this.requestImportIssue(props, comments);
 
+    if (Number(issue_number) != issue.iid) {
+      throw new Error(
+        `Issue number ${issue_number} does not match GitLab issue number ${issue.iid}`
+      );
+    }
+
     if (assignees.length > 1 && issue_number) {
       if (assignees.length > 10) {
         console.error(
@@ -1418,6 +1424,12 @@ export class GithubHelper {
         githubIssue as GitHubIssue,
         issue as GitLabIssue
       );
+
+      if (githubIssue.number != issue.iid) {
+        throw new Error(
+          `Issue number ${githubIssue.number} does not match GitLab issue number ${issue.iid}`
+        );
+      }
     }
   }
 
