@@ -1156,6 +1156,55 @@ export class GithubHelper {
 
   // ----------------------------------------------------------------------------
 
+  async deleteIssueComments(issue: GitHubIssue | GitHubPullRequest) {
+    let comments = await this.githubApi.issues.listComments({
+      owner: this.githubOwner,
+      repo: this.githubRepo,
+      issue_number: issue.number,
+    });
+
+    console.log(`Deleting ${comments.data.length} issue comments...`);
+
+    for (let comment of comments.data) {
+      await this.githubApi.issues.deleteComment({
+        owner: this.githubOwner,
+        repo: this.githubRepo,
+        comment_id: comment.id,
+      });
+    }
+  }
+
+  async deleteReviewComments(pullRequest: GitHubPullRequest) {
+    // let reviews = await this.githubApi.pulls.listReviews({
+    //   owner: this.githubOwner,
+    //   repo: this.githubRepo,
+    //   pull_number: pullRequest.number,
+    // });
+
+    // console.log(`There are ${reviews.data.length} reviews`);
+    
+    let comments = await this.githubApi.pulls.listReviewComments({
+      owner: this.githubOwner,
+      repo: this.githubRepo,
+      pull_number: pullRequest.number,
+    });
+    
+    console.log(`Deleting ${comments.data.length} review comments...`);
+
+    for (let comment of comments.data) {
+      await this.githubApi.pulls.deleteReviewComment({
+        owner: this.githubOwner,
+        repo: this.githubRepo,
+        comment_id: comment.id,
+      });
+    }
+
+    if (comments.data.length == 30) {
+      console.log('There are more comments...')
+      await this.deleteReviewComments(pullRequest);
+    }
+  }
+
   /**
    * Creates the information required for a new review comment.
    * See: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request

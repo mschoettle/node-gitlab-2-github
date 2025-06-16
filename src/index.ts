@@ -650,6 +650,26 @@ async function transferMergeRequests() {
             ' - ' +
             mr.title
         );
+        // uncomment to delete existing comments and re-migrate (in case a migration stopped midway)
+        // if (githubRequest.number == 216) {
+        //   console.log(`The migrated merge request (${githubRequest.number}) is incomplete. Deleting comments and re-migrating them...`);
+        //   console.log(`Deleting existing comments on PR/issue #${githubRequest.number}`);
+        //   await githubHelper.deleteIssueComments(githubRequest);
+
+        //   console.log(`Deleting existing review comments on PR #${githubRequest.number}`);
+        //   await githubHelper.deleteReviewComments(githubRequest);
+          
+        //   console.log(`Migrating pull request comments and updating state and data...`);
+        //   // Add milestones, labels, and other attributes from the Issues API
+        //   await githubHelper.updatePullRequestData(githubRequest, mr);
+
+        //   // // add any comments/nodes associated with this pull request
+        //   await githubHelper.createPullRequestComments(githubRequest, mr);
+
+        //   // // Make sure to close the GitHub pull request if it is closed or merged in GitLab
+        //   await githubHelper.updatePullRequestState(githubRequest, mr);
+        //  process.exit(1);
+        // }
         githubHelper.updatePullRequestState(githubRequest, mr);
       } else {
         console.log(
