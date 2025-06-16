@@ -155,6 +155,7 @@ function createPlaceholderIssue(expectedIdx: number): Partial<GitLabIssue> {
       'This is to ensure that issue numbers in GitLab and GitHub are the same',
     state: 'closed',
     isPlaceholder: true,
+    merge_requests_count: 0,
   };
 }
 
@@ -377,7 +378,7 @@ async function transferLabels(attachmentLabel = true, useLowerCase = true) {
     const hasAttachmentLabel = {
       name: 'has attachment',
       color: '#fbca04',
-      description: 'Attachment was not transfered from GitLab',
+      description: 'Attachment was not transferred from GitLab',
     };
     labels.push(hasAttachmentLabel);
   }

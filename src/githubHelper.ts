@@ -453,7 +453,13 @@ export class GithubHelper {
       labels.push('has attachment');
     }
 
-    labels.push('gitlab merge request');
+    // Differentiate between issue and merge request
+    // Note that it needs to apply to placeholders as well
+    if ('merge_requests_count' in item) {
+      labels.push('gitlab issue');
+    } else {
+      labels.push('gitlab merge request');
+    }
 
     if (item.state === 'merged') {
       labels.push('merged');
@@ -494,7 +500,7 @@ export class GithubHelper {
     props.milestone = this.convertMilestone(issue);
     props.labels = this.convertLabels(issue);
 
-    if (settings.dryRun) return Promise.resolve({ data: issue });
+    if (settings.dryRun) return Promise.resolve(issue.iid);
 
     //
     // Issue comments
@@ -931,23 +937,19 @@ export class GithubHelper {
     // an issue was created instead, and settings.useIssueImportAPI is true. In that
     // case comments were already added and the state is already properly set
     if (typeof pullRequestData === 'string' || !pullRequestData) {
+      let issueNumber = Number(pullRequestData);
+
       // if the merge request was closed, update the issue close reason to "not planned"
       if (mergeRequest.state === 'closed') {
-        console.log('updating issue close reason')
-        let props: RestEndpointMethodTypes['issues']['update']['parameters'] = {
-          owner: this.githubOwner,
-          repo: this.githubRepo,
-          issue_number: Number(pullRequestData),
-          state: 'closed',
-          state_reason: 'not_planned',
-        };
-
-        await utils.sleep(this.delayInMs);
-
-        if (!settings.dryRun) {
-          let response = await this.githubApi.issues.update(props);
-        }
+        await this.updateIssueStateReason(issueNumber);
       }
+
+      if (issueNumber !== mergeRequest.iid) {
+        throw new Error(
+          `Pull request number ${issueNumber} does not match merge request number ${mergeRequest.iid}`
+        );
+      }
+
       return;
     }
 
@@ -969,6 +971,23 @@ export class GithubHelper {
       throw new Error(
         `Pull request number ${pullRequest.number} does not match merge request number ${mergeRequest.iid}`
       );
+    }
+  }
+
+  private async updateIssueStateReason(issueNumber: number) {
+    console.log('updating issue close reason');
+    let props: RestEndpointMethodTypes['issues']['update']['parameters'] = {
+      owner: this.githubOwner,
+      repo: this.githubRepo,
+      issue_number: issueNumber,
+      state: 'closed',
+      state_reason: 'not_planned',
+    };
+
+    await utils.sleep(this.delayInMs);
+
+    if (!settings.dryRun) {
+      await this.githubApi.issues.update(props);
     }
   }
 
